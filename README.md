@@ -1,4 +1,4 @@
-# browser_automation
+# Browser In The Cloud
 ## Project Documentation
 
 ### Project Overview
