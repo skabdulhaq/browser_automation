@@ -69,10 +69,6 @@ To run the application, follow these steps:
 
 This project is open to contributions. If you find any bugs, have suggestions, or want to add new features, please feel free to submit pull requests or raise issues on the GitHub repository.
 
-### License
-
-This project is open-source and distributed under the MIT License. See the `LICENSE` file for more details.
-
 ### Disclaimer
 
 Please note that this project is intended for educational and demonstrational purposes. Deploying applications in a production environment requires careful security considerations, and it is advised to use appropriate security measures to protect sensitive data and resources.
