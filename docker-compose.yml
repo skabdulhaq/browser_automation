@@ -1,5 +1,5 @@
 services:
-  api:
+  fastapi:
     restart: always
     build:
       context: ./backend
