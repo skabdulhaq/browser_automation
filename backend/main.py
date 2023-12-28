@@ -48,7 +48,7 @@ password_noreply_email = os.environ.get("EMAIL_HOST_PASSWORD")
 mail_server = os.environ.get("EMAIL_HOST")
 port_number = os.environ.get("EMAIL_PORT")
 website_url = os.environ.get("WEBSITE_URL") or "http://0.0.0.0:8000"
-
+web_api = os.environ.get("WEB_API")
 
 
 def get_diff_time(initial_time):
@@ -271,7 +271,7 @@ async def add_container(container: Container, task_manager: BackgroundTasks, cur
     port_value = get_free_port()
     container_name = f"{current_user.username}-{uuid4().hex}-{port_value}"
     del_key = os.environ.get('delete_key')
-    command = f"sudo docker run --rm -d --name={container_name} -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image}  --health-interval=30s --health-cmd='curl http://100.92.156.134:8000/delete/container/{container_name}/{del_key}'"
+    command = f"sudo docker run --rm -d --name={container_name} -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image}  --health-interval=30s --health-cmd='curl {web_api}/delete/container/{container_name}/{del_key}'"
     print(command)
     try:
         url_service = f"https://{execute_command(command)}:{port_value}"
