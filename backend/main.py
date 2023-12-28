@@ -158,8 +158,8 @@ def create_token(data: dict, expires_delta: Union[timedelta, None] = None):
 async def startup_event():
     try:
         app.mongodb_client = MongoClient(DB_URL)
-    except:
-        print("Error while connecting to database")
+    except Exception as e:
+        raise print(e)
     app.database = app.mongodb_client["browser"]
 
 
