@@ -3,11 +3,11 @@ services:
     restart: always
     build:
       context: ./backend
-      dockerfile: ./backend/Dockerfile.api
+      dockerfile: Dockerfile.api
     depends_on:
       - mongodb
     env_file:
-      - ./backend/.env
+      - .env
     expose:
       - 8000
     networks:
