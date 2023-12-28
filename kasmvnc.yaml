@@ -1,8 +1,0 @@
-network:
-  ssl:
-    pem_certificate: ${HOME}/.vnc/self.pem
-    pem_key: ${HOME}/.vnc/self.pem
-  udp:
-    public_ip: 127.0.0.1
-  sound:
-    server: tcp:192.168.0.100:4713

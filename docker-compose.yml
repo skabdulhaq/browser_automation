@@ -1,0 +1,45 @@
+services:
+  api:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: ./backend/Dockerfile.api
+    depends_on:
+      - mongodb
+    env_file:
+      - ./api/.env
+    expose:
+      - 8000
+    networks:
+      - website_network
+  
+  mongodb:
+    image: mongo:7.0.5-rc0
+    restart: always
+    env_file:
+      - ./backend/.env.db
+    volumes:
+      - /etc/volumes/database/db:/data/db
+    expose:
+    - 27017
+    ports:
+      - "26017:27017"
+    networks:
+      - website_network
+  nginx:
+    image: nginx
+    build:
+      context: ./
+      dockerfile: Dockerfile.nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:80"
+    depends_on:
+      - api
+      - mongodb
+    networks:
+      - website_network
+
+networks:
+  website_network:

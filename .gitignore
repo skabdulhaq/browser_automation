@@ -30,6 +30,9 @@ ssh_rsa.pub
 .test
 example.py
 main_.py
+private*
+Testing.py
+.env*
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
