@@ -271,7 +271,7 @@ async def add_container(container: Container, task_manager: BackgroundTasks, cur
     port_value = get_free_port()
     container_name = f"{current_user.username}-{uuid4().hex}-{port_value}"
     del_key = os.environ.get('delete_key')
-    command = f'sudo docker run --rm -d --name={container_name} -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image}  --health-interval=30s --health-cmd="curl {web_api}/delete/container/{container_name}/{del_key}" --health-timeout=5s --health-retries=3'
+    command = f'sudo docker run --rm -d --name={container_name}  --health-interval=30s --health-cmd="curl -f {web_api}/delete/container/{container_name}/{del_key}" --health-timeout=5s --health-retries=3 -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image} '
     print(command)
     try:
         url_service = f"https://{execute_command(command)}:{port_value}"
