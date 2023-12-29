@@ -271,7 +271,7 @@ async def add_container(container: Container, task_manager: BackgroundTasks, cur
     port_value = get_free_port()
     container_name = f"{current_user.username}-{uuid4().hex}-{port_value}"
     del_key = os.environ.get('delete_key')
-    command = f"sudo docker run --rm -d --name={container_name} -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image}  --health-interval=30s --health-cmd='curl {web_api}/delete/container/{container_name}/{del_key}'"
+    command = f'sudo docker run --rm -d --name={container_name} -it --shm-size=512m -p {port_value}:6901 -e VNC_PW={container.password} {container.container_image}  --health-interval=30s --health-cmd="curl {web_api}/delete/container/{container_name}/{del_key}" --health-timeout=5s --health-retries=3'
     print(command)
     try:
         url_service = f"https://{execute_command(command)}:{port_value}"
@@ -316,19 +316,6 @@ async def delete_user_container(container_name: str, current_user: User = Depend
 async def get_containers(current_user: User = Depends(get_current_active_user)):
     return current_user.containers
 
-# @app.delete("/container/{name}")
-# async def delete_server(name: str, delete_key:str, task_manager: BackgroundTasks):
-#     if os.environ.get("delete_key") != delete_key:
-#         raise HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="Invalid Admin Key",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     # details = await get_droplets_details(name)
-#     # print(details)
-#     details_id = details["id"]
-#     task_manager.add_task(delete_droplet,details_id, name.split("-")[0])
-#     return {"Success": "Container Deleted"}
 
 @app.get("/verify/{otp}/{email}")
 def verify_email(email: str, otp: str):
