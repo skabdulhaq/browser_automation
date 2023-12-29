@@ -1,4 +1,4 @@
-# Browser In The Cloud
+# Cloud OS (Browser In The Cloud)
 ## Project Documentation
 
 ### Project Overview
