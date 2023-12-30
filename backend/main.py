@@ -18,22 +18,22 @@ from starlette.middleware.cors import CORSMiddleware
 import re, requests
 load_dotenv()
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://campusmartz.com",
-    "https://*.campusmartz.com",
-]
-middleware = [
-    Middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=['*'],
-        allow_headers=['*']
-    )
-]
-app = FastAPI(title="OS Cloud", description="OS Cloud",version="0.1.0", root_path="/api")
+# origins = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "https://campusmartz.com",
+#     "https://*.campusmartz.com",
+# ]
+# middleware = [
+#     Middleware(
+#         CORSMiddleware,
+#         allow_origins=origins,
+#         allow_credentials=True,
+#         allow_methods=['*'],
+#         allow_headers=['*']
+#     )
+# ]
+app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0", root_path="/api")
 app.add_middleware(CORSMiddleware,allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"] )
 SECRET_KEY = os.environ.get("SECRET_KEY")
 TOKEN = os.getenv('DIGITALOCEAN_AUTH')
@@ -231,6 +231,16 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestFormStrict = Depends()):
+    get_user(form_data.username)
+    if "@" in form_data.username:
+        user_from_email = get_user_by_email(form_data.username)
+        if user_from_email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        form_data.username = user_from_email.username
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -330,13 +340,17 @@ def verify_email(email: str, otp: str):
 
 @app.post("/register" , response_model=User)
 async def register(user: UserCreate, verification_email: BackgroundTasks):
-    if get_user_by_email(user.email) or get_user(user.username):
-        raise HTTPException(status_code=409 ,detail="User already exists")
+    if get_user_by_email(user.email):
+        raise HTTPException(status_code=409 ,detail="User already exists.")
+    if get_user(user.username):
+        raise HTTPException(status_code=409 ,detail="Username is already taken.")
     if not is_password_valid(user.username):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Only alphabets and numbers are allowed in username.") 
     details = is_valid_email(user.email)
     if details != True:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail=details)
+    if len(user.password) < 8:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Password should be atleast 8 characters long.")
     otp = generateOTP()
     db_user = UserInDB(**user.dict(), hashed_password=get_password_hash(user.password), otp=str(otp))
     app.database["users"].insert_one(db_user.dict())
