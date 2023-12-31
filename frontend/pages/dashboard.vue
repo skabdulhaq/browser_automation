@@ -11,41 +11,51 @@
                     <div class="stat-value">{{ userData.max_containers }}</div>
                 </div>
             </div>
-            <select class="select select-secondary w-full max-w-xs">
-                <option disabled selected>Pick your favorite language</option>
-                <option>Java</option>
-                <option>Go</option>
-                <option>C</option>
-                <option>C#</option>
-                <option>C++</option>
-                <option>Rust</option>
-                <option>JavaScript</option>
-                <option>Python</option>
-            </select>
+            <!-- {{ avaliableImages }} -->
+            <div class="flex gap-4">
+                <select class="select select-secondary w-full max-w-xs" v-model="selectedImage">
+                    <option disabled selected>Pick your image to deploy</option>
+                    <option 
+                    v-for="image in avaliableImages" 
+                    :value="image" 
+                    :key="image" >
+                        {{toTitleCase(image.split("/")[1].split(":")[0])}}
+                    </option>
+                </select>
+                <button class="btn btn-secondary" @click="deploy">Launch</button>
+            </div>
         </div>
     </div>
 </template>
 <script setup>
+function toTitleCase(str) {
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
 
 const userData = ref({});
 const userContainers = ref();
+const avaliableImages = ref();
 const noContainers = ref(true);
-
+const selectedImage = ref("");
 async function sendRequest(url, method, store) {
     try {
         const cookie = useCookie('token').value;
         console.log(cookie);
-        const auth_header = {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${cookie}`,
-            'Content-Type': 'application/json'
-        }
-        // console.log(auth_header)
+        let req_header = {}
+            req_header = {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${cookie}`,
+                'Content-Type': 'application/json'
+            }
         const response = await fetch(url, {
             method: method,
-            headers: auth_header,
+            headers: req_header,
         });
-        // console.log(response.status);
         if (response.status == 401) {
             return navigateTo('/login')
         }
@@ -65,10 +75,14 @@ async function sendRequest(url, method, store) {
 
 await sendRequest("http://cloudos.us.to/api/user", "GET", userData);
 await sendRequest("http://cloudos.us.to/api/user/containers", "GET", userContainers);
-console.log(userData.value, "userdata");
-console.log(userContainers.value.length)
+await sendRequest("http://cloudos.us.to/api/list/images", "GET", avaliableImages);
 if (userContainers.value.length > 0) {
     noContainers.value = false;
+}
+
+function deploy(){
+    // console.log(selectedImage.value)
+    
 }
 definePageMeta({
     middleware: 'auth'
