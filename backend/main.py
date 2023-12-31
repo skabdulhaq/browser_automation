@@ -323,7 +323,7 @@ async def delete_user_container(container_name: str, current_user: User = Depend
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error when deleting {container_name}",headers={"WWW-Authenticate": "Bearer"})
 
 @app.get("/users/containers")
-async def get_containers(current_user: User = Depends(get_current_active_user))->list(ContainerOut):
+async def get_containers(current_user: User = Depends(get_current_active_user))->list[ContainerOut]:
     return current_user.containers
 
 
