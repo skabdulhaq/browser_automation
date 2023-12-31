@@ -113,7 +113,7 @@ function raiseError() {
 
 }
 async function register() {
-    console.log(formData.value);
+    // console.log(formData.value);
     const validPassword = verifyPassword();
     if (validPassword) {
         const response = await fetch('http://cloudos.us.to/api/register', {

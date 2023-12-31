@@ -42,7 +42,7 @@
     <Footer></Footer>
 </template>
 <script setup>
-import { isUserLoggedIn, userData, isUserData } from '~/composables/loginState';
+import { isUserLoggedIn } from '~/composables/loginState';
 
 const error = ref(false);
 const error_text = ref("");
@@ -51,7 +51,6 @@ const loginData = ref({
     password: ""
 })
 const loading = ref(false);
-const dataUser = userData();
 const login = async () => {
     loading.value = true
     const url = "http://cloudos.us.to/api/token"
@@ -64,8 +63,6 @@ const login = async () => {
         accept: 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded'
     };
-    const doseUserExisits = isUserData();
-    console.log(doseUserExisits);
     const userLoggedIn = isUserLoggedIn();
     const body = new URLSearchParams(data);
     try {
@@ -78,10 +75,9 @@ const login = async () => {
         }
         if (data.token_type == "bearer") {
             const token = useCookie('token', { maxAge: 86400 })
-            doseUserExisits.value = true;
+            userLoggedIn.value = true;
             token.value = data.access_token;
             try {
-                console.log(useCookie('token').value);
                 const response = await fetch("http://cloudos.us.to/api/user", {
                     method: 'GET',
                     headers: {
@@ -95,7 +91,6 @@ const login = async () => {
                     throw new Error('Network response was not ok');
                 }
                 else {
-                    dataUser.value = result
                     const userLoggedIn = isUserLoggedIn();
                     userLoggedIn.value = true;
                     await navigateTo('/dashboard')
