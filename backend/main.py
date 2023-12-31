@@ -341,7 +341,7 @@ def verify_email(email: str, otp: str):
         return {"Error": "Invalid OTP"}
 
 @app.get("/list/images")
-def get_available_images():
+def get_available_images()->list[str]:
     pipeline = [
     {
         '$project': {
