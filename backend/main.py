@@ -258,7 +258,7 @@ async def get_user_data(current_user: User = Depends(get_current_active_user)):
     # user = await update_up_time(current_user)
     return current_user
 
-@app.post("/users/container")
+@app.post("/user/container")
 async def add_container(container: Container, task_manager: BackgroundTasks, current_user: User = Depends(get_current_active_user))->ContainerOut:
     if current_user.active_containers >= current_user.max_containers:
         raise HTTPException(
@@ -314,7 +314,7 @@ def delete_container_key(container_name: str, delete_key: str):
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Admin Key",headers={"WWW-Authenticate": "Bearer"})
 
 
-@app.delete("/users/container")
+@app.delete("/user/container")
 async def delete_user_container(container_name: str, current_user: User = Depends(get_current_active_user))->list[ContainerOut]:
     if delete_container(container_name):
         current_user = get_user(current_user.username)
@@ -323,7 +323,7 @@ async def delete_user_container(container_name: str, current_user: User = Depend
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error when deleting {container_name}",headers={"WWW-Authenticate": "Bearer"})
 
-@app.get("/users/containers")
+@app.get("/user/containers")
 async def get_containers(current_user: User = Depends(get_current_active_user))->list[ContainerOut]:
     # print(current_user)
     return current_user.containers

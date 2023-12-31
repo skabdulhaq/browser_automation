@@ -2,7 +2,7 @@
     <div class="stats shadow">
         <div class="stat">
             <div class="stat-title">Launch</div>
-            <div class="stat-value">{{userContainers.value.leng}}</div>
+            <div class="stat-value">{{userContainers.value}}</div>
             <!-- <div class="stat-desc"></div> -->
         </div>
     </div>
