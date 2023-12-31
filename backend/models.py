@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Union
+from typing import Union, Dict
 from datetime import datetime
  
 class Token(BaseModel):
@@ -21,13 +21,15 @@ class ContainerInDB(Container):
     port:Union[int, None] = None
     service_url:Union[str, None] = None
 
-class ContainerOut(ContainerInDB):
-    container_name: str
+class ContainerOut(BaseModel):
+    container_image: Union[str, None] = None
+    container_name: Union[str, None] = None
     down_time: Union[datetime, None] = None
     status: Union[str, None] = None
     server_ip:Union[str, None] = None
     port:Union[int, None] = None
     service_url:Union[str, None] = None
+    
     
 class User(BaseModel):
     username: str
@@ -36,7 +38,7 @@ class User(BaseModel):
     disabled: Union[bool, None] = True
     active_containers: Union[int, None] = 0
     max_containers: Union[int, None] = 1
-    containers: Union[ContainerOut, None] = {}
+    containers: Union[list, None] = []
 
 
 class UserInDB(User):

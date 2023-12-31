@@ -16,7 +16,6 @@ from email.mime.text import MIMEText
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import re, requests
-load_dotenv()
 
 # origins = [
 #     "http://localhost:3000",
@@ -33,7 +32,9 @@ load_dotenv()
 #         allow_headers=['*']
 #     )
 # ]
-app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0", root_path="/api")
+load_dotenv("./.env.dev")
+app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0")
+# app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0", root_path="/api")
 app.add_middleware(CORSMiddleware,allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"] )
 SECRET_KEY = os.environ.get("SECRET_KEY")
 TOKEN = os.getenv('DIGITALOCEAN_AUTH')
@@ -83,7 +84,6 @@ def is_valid_email(email:str):
     }
     url = "https://control.msg91.com/api/v5/email/validate"
     response = requests.post(url, json=payload, headers=headers)
-    # print(response.text)
     data = response.json()
     if data["status"] != "success":
         return "Error while validating email."
@@ -171,15 +171,15 @@ async def shutdown_server():
 def remove_container_in_db(container_name: str):
     print("Deleting", container_name)
     current_username = container_name.split("-")[0]
+    # print
     app.database["port"].delete_one({"port": int(container_name.split("-")[-1])})
     print("Deleted", container_name)
-    app.database["users"].update_one({"username": current_username}, {"$unset": {f"containers.{container_name}": ""}})
+    app.database["users"].update_one({"username": current_username}, {"$pull": {f"containers": {"container_name":container_name}}})
     app.database["users"].update_one({"username": current_username}, {"$inc": {"active_containers": -1}})
     return app.database["users"].find_one({"username": current_username})
-
 def add_container_in_db(container: ContainerInDB, current_user: User):
     app.database["port"].insert_one({"port": container.port})
-    app.database["users"].update_one({"username": current_user.username}, {"$set": {f"containers.{container.container_name}": container.dict()}}, upsert=True)
+    app.database["users"].update_one({"username": current_user.username}, {"$push": {f"containers": container.dict()}}, upsert=True)
     app.database["users"].update_one({"username": current_user.username}, {"$inc": {"active_containers": 1}})
     return app.database["users"].find_one({"username": current_user.username})
 
@@ -231,7 +231,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestFormStrict = Depends()):
-    get_user(form_data.username)
+    # get_user(form_data.username)
     if "@" in form_data.username:
         user_from_email = get_user_by_email(form_data.username)
         if user_from_email:
@@ -258,7 +258,7 @@ async def get_user_data(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 @app.post("/users/container")
-async def add_container(container: Container, task_manager: BackgroundTasks, current_user: User = Depends(get_current_active_user)):
+async def add_container(container: Container, task_manager: BackgroundTasks, current_user: User = Depends(get_current_active_user))->ContainerOut:
     if current_user.active_containers >= current_user.max_containers:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -314,16 +314,17 @@ def delete_container_key(container_name: str, delete_key: str):
 
 
 @app.delete("/users/container")
-async def delete_user_container(container_name: str, current_user: User = Depends(get_current_active_user)):
+async def delete_user_container(container_name: str, current_user: User = Depends(get_current_active_user))->list[ContainerOut]:
     if delete_container(container_name):
+        current_user = get_user(current_user.username)
         containers = current_user.containers
-        containers.pop(str(container_name))
         return containers
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error when deleting {container_name}",headers={"WWW-Authenticate": "Bearer"})
 
 @app.get("/users/containers")
 async def get_containers(current_user: User = Depends(get_current_active_user))->list[ContainerOut]:
+    # print(current_user)
     return current_user.containers
 
 
