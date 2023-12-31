@@ -32,9 +32,10 @@ import re, requests
 #         allow_headers=['*']
 #     )
 # ]
-load_dotenv("./.env.dev")
-app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0")
-# app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0", root_path="/api")
+# load_dotenv("./.env.dev")
+load_dotenv()
+# app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0")
+app = FastAPI(title="Cloud OS", description="Cloud OS",version="0.1.0", root_path="/api")
 app.add_middleware(CORSMiddleware,allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"] )
 SECRET_KEY = os.environ.get("SECRET_KEY")
 TOKEN = os.getenv('DIGITALOCEAN_AUTH')
