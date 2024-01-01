@@ -1,5 +1,5 @@
 <template>
-    <div class="flex justify-center min-h-screen flex-col">
+    <div v-if="!pageLoading" class="flex justify-center items-center gap-16 min-h-screen flex-col">
         <div class="flex-col flex justify-center">
             <div class="stats shadow">
                 <div class="stat place-items-center">
@@ -14,7 +14,6 @@
             <div>
                 <div class="flex flex-col gap-4 mt-4 ">
                     <div>
-
                         <div class="label">
                             <span class="label-text">Select a image to deploy</span>
                         </div>
@@ -36,14 +35,24 @@
                                 characters</span>
                         </div>
                     </div>
-                    <button v-if="password.length >= 6" class="btn btn-secondary" @click="deploy">
-                        <span v-if="loading" class="loading loading-spinner text-primary"></span>
-                        <span v-else>Launch</span>
+                    <button v-if="!loading && password.length >= 6" class="btn btn-secondary" @click="deploy">
+                        Launch
                     </button>
+                    <button v-if="loading" class="btn btn-secondary">
+                        <span class="loading loading-spinner text-primary"></span>
+                    </button>
+                    <div role="alert" v-if="showError" class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ errorText }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="overflow-x-auto table-sm">
+        <div v-if="userContainers.length" class="overflow-x-auto table-sm">
             <table class="table">
                 <thead>
                     <tr>
@@ -61,12 +70,22 @@
                             </a>
                         </td>
                         <td>{{ toTitleCase(containerData.container_image.split("/")[1].split(":")[0]) }}</td>
-                        <td>{{ containerData.down_time }}</td>
                         <td>
-                            <button class="btn btn-secondary" @click="delete_container(containerData.container_name)">
+                            <Counter :hours=convertISOTimeToLocalDate(containerData.down_time).hours
+                                :minutes=convertISOTimeToLocalDate(containerData.down_time).minutes
+                                :seconds=convertISOTimeToLocalDate(containerData.down_time).seconds />
+                        </td>
+                        <td>
+                            <button v-if="!deleteLoading[containerData.container_name]" class="btn btn-secondary"
+                                @click="delete_container(containerData.container_name)">
                                 DELETE
                             </button>
-                         </td>
+                            <button :key="containerData.container_name" v-else class="btn btn-secondary"
+                                @click="delete_container(containerData.container_name)">
+                                <span :key="containerData.container_name"
+                                    class="loading loading-spinner text-primary"></span>
+                            </button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -74,8 +93,22 @@
     </div>
 </template>
 <script setup>
-function toTitleCase(str) {
+const userData = ref({});
+const userContainers = ref([]);
+const avaliableImages = ref();
+const noContainers = ref(true);
+const password = ref("");
+const selectedImage = ref("Pick your image to deploy");
+const containerData = ref();
+const deletedUserContainers = ref();
+const loading = ref(false);
+const deleteLoading = ref({});
+const errorText = ref("");
+const showError = ref(false);
+const pageLoading = ref(false);
 
+
+function toTitleCase(str) {
     return str.replace(
         /\w\S*/g,
         function (txt) {
@@ -84,16 +117,32 @@ function toTitleCase(str) {
     );
 }
 
-const userData = ref({});
-const userContainers = ref([]);
-const avaliableImages = ref();
-const noContainers = ref(true);
-const errorVal = ref("");
-const password = ref("");
-const selectedImage = ref("Pick your image to deploy");
-const containerData = ref();
-const deletedUserContainers = ref();
-const loading = ref(false);
+function convertISOTimeToLocalDate(utcISOTimeString) {
+    const utcDate = new Date(utcISOTimeString);
+    const userTimezoneOffset = new Date().getTimezoneOffset();
+    const localDate = new Date(utcDate.getTime() - userTimezoneOffset * 60000);
+    const present_time = new Date();
+    const timeDifference = localDate.getTime() - present_time
+    if (timeDifference > 0) {
+        const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        // console.log({ hours, minutes, seconds });
+        return { hours, minutes, seconds };
+    }
+}
+
+function showErrorNow(errorMsg) {
+    showError.value = true;
+    console.log(errorMsg, "showErrorNow")
+    errorText.value = errorMsg;
+    setTimeout(
+        function () {
+            showError.value = false;
+        }, 3000
+    )
+}
+
 async function sendRequest(url, method, store, data, bodyMsg) {
     try {
         const cookie = useCookie('token').value;
@@ -111,7 +160,8 @@ async function sendRequest(url, method, store, data, bodyMsg) {
             });
             const resp = await response.json()
             if (!resp.ok) {
-                errorVal.value = resp.detail;
+                console.log(resp.detail)
+                showErrorNow(resp.detail);
             }
             else {
                 store.value = query;
@@ -123,15 +173,14 @@ async function sendRequest(url, method, store, data, bodyMsg) {
                 headers: req_header,
             });
             if (response.status == 401) {
-                return navigateTo('/login')
+                await navigateTo('/login')
             }
             else if (!response.ok) {
-                throw new Error('Network response was not ok');
+                showErrorNow(response.detail);
             }
             else {
                 const data = await response.json();
                 store.value = data;
-                // console.log(store.value);
             }
         }
     }
@@ -139,14 +188,12 @@ async function sendRequest(url, method, store, data, bodyMsg) {
         console.log(e);
     }
 }
-async function getUserContainers(){
+
+async function getUserContainers() {
     await sendRequest("http://cloudos.us.to/api/user/containers", "GET", userContainers, false, {});
-}
-await sendRequest("http://cloudos.us.to/api/user", "GET", userData, false, {});
-await getUserContainers();
-await sendRequest("http://cloudos.us.to/api/list/images", "GET", avaliableImages, false, {});
-if (userContainers.value.length > 0) {
-    noContainers.value = false;
+    for (var i = 0; i < userContainers.value.length; i++) {
+        deleteLoading[userContainers.value[i].container_name] = false
+    }
 }
 
 async function deploy() {
@@ -155,20 +202,30 @@ async function deploy() {
         container_image: selectedImage.value,
         password: password.value,
     });
-    console.log(containerData.value)
+    // console.log(containerData.value)
     password.value = "";
     selectedImage.value = "Pick your image to deploy";
     await getUserContainers();
     loading.value = false;
 }
-async function delete_container(containerName){
-    deleteLoading.value = true
-    console.log(containerName, "DELETING")
-    await sendRequest(`http://cloudos.us.to/api/user/containers?container_name=${containerName}`, "DELETE", deletedUserContainers, false, {});
+
+async function delete_container(containerName) {
+    deleteLoading.value[containerName] = true
+    // console.log(containerName, "DELETING")
+    await sendRequest(`http://cloudos.us.to/api/user/container?container_name=${containerName}`, "DELETE", deletedUserContainers, false, {});
     await getUserContainers();
-    deleteLoading.value = false
+    deleteLoading.value[containerName] = false
 }
+pageLoading.value = true;
+if (userContainers.value.length > 0) {
+    noContainers.value = false;
+}
+await sendRequest("http://cloudos.us.to/api/user", "GET", userData, false, {});
+await getUserContainers();
+await sendRequest("http://cloudos.us.to/api/list/images", "GET", avaliableImages, false, {});
+pageLoading.value = false;
 definePageMeta({
     middleware: 'auth'
 });
+
 </script>

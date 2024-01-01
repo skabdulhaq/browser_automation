@@ -18,7 +18,7 @@
             </a>
         </div>
         <div class="navbar-end hidden md:flex">
-            <div class="menu menu-horizontal px-1">
+            <div v-if="!userLogin" class="menu menu-horizontal px-1">
                 <NuxtLink to="/login">
                     <span class="btn btn-secondary mr-4  ">Login</span>
                 </NuxtLink>
@@ -26,6 +26,18 @@
                     <span class="btn btn-accent ">Register</span>
                 </NuxtLink>
             </div>
+            <div v-else class="menu menu-horizontal px-1">
+                <NuxtLink to="/dashboard">
+                    <span class="btn btn-accent mr-4">Dashboard</span>
+                </NuxtLink>
+                <NuxtLink to="/logout">
+                    <span class="btn btn-secondary">Logout</span>
+                </NuxtLink>
+            </div>
         </div>
 </div>
 </template>
+
+<script setup>
+const userLogin = useIsUserLoggedIn();
+</script>

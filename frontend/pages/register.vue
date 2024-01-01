@@ -34,6 +34,9 @@
                         </label>
                         <input type="password" v-model="formData.password" placeholder="password"
                             class="input input-bordered" required />
+                        <div class="label">
+                            <span class="label-text-alt">Click here to <NuxtLink class="link" to="/login">Login</NuxtLink></span>
+                        </div>
                     </div>
                     <div role="alert" v-if="short_password" class="alert alert-error">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
@@ -109,9 +112,7 @@ function verifyPassword() {
         return false;
     }
 }
-function raiseError() {
 
-}
 async function register() {
     // console.log(formData.value);
     const validPassword = verifyPassword();
@@ -130,8 +131,8 @@ async function register() {
             error.value = true;
             console.log(error.value);
             setTimeout(
-                function (){
-                    error.value = false; 
+                function () {
+                    error.value = false;
                     error_text.value = "";
                 }, 2000
             )

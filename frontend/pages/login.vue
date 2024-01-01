@@ -20,6 +20,9 @@
                         </label>
                         <input type="password" v-model="loginData.password" placeholder="password"
                             class="input input-bordered" required />
+                        <div class="label">
+                            <span class="label-text-alt">Not registered? <NuxtLink class="link" to="/register">Create an account</NuxtLink></span>
+                        </div>
                     </div>
                     <div role="alert" v-if="error" class="alert alert-error">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
@@ -42,8 +45,10 @@
     <Footer></Footer>
 </template>
 <script setup>
-import { isUserLoggedIn } from '~/composables/loginState';
-
+const userLoggedIn = useIsUserLoggedIn();
+if (userLoggedIn.value) {
+    await navigateTo('/dashboard')
+}
 const error = ref(false);
 const error_text = ref("");
 const loginData = ref({
@@ -63,19 +68,16 @@ const login = async () => {
         accept: 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded'
     };
-    const userLoggedIn = isUserLoggedIn();
     const body = new URLSearchParams(data);
     try {
         const response = await fetch(url, { method: 'POST', headers, body });
         const data = await response.json();
-
         if (!response.ok) {
             error.value = true;
             error_text.value = data.detail
         }
         if (data.token_type == "bearer") {
             const token = useCookie('token', { maxAge: 86400 })
-            userLoggedIn.value = true;
             token.value = data.access_token;
             try {
                 const response = await fetch("http://cloudos.us.to/api/user", {
@@ -91,17 +93,14 @@ const login = async () => {
                     throw new Error('Network response was not ok');
                 }
                 else {
-                    const userLoggedIn = isUserLoggedIn();
-                    userLoggedIn.value = true;
                     await navigateTo('/dashboard')
                 }
                 if (route.query.to) {
-                  await navigateTo(route.query.to);
+                    await navigateTo(route.query.to);
                 }
                 else {
                 }
             } catch (error) {
-                userLoggedIn.value = false;
                 console.error('Error fetching data:', error.message);
             }
         }
