@@ -1,4 +1,6 @@
 # Cloud OS (Browser In The Cloud)
+## Website Link
+[Cloud OS](http://cloudos.us.to/)
 ## Project Documentation
 [Cloud OS API Docs](http://cloudos.us.to/api/docs)
 ### Project Overview
