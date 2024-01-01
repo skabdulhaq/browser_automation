@@ -248,4 +248,7 @@ definePageMeta({
     middleware: 'auth'
 });
 
+useHead({
+  title:"Cloud OS: Launch your image",
+});
 </script>

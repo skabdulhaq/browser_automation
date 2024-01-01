@@ -144,4 +144,7 @@ async function register() {
     }
 
 }
+useHead({
+  title:"Register for Cloud OS",
+});
 </script>

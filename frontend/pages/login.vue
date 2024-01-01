@@ -110,4 +110,7 @@ const login = async () => {
     }
     loading.value = false;
 }
+useHead({
+  title:"Login to Cloud OS",
+});
 </script>
