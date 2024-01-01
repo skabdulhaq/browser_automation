@@ -43,7 +43,7 @@ DB_URL = os.getenv('DB_URL')
 client = Client(token=TOKEN)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 30*2*24
 ALGORITHM = "HS256"
 noreply_email = os.environ.get("EMAIL_HOST_USER")
 password_noreply_email = os.environ.get("EMAIL_HOST_PASSWORD")

@@ -26,6 +26,7 @@ services:
       - "26017:27017"
     networks:
       - website_network
+
   nginx:
     image: nginx
     build:
@@ -38,6 +39,16 @@ services:
     depends_on:
       - fastapi
       - mongodb
+      - web
+    networks:
+      - website_network
+      
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.web
+    depends_on:
+      - fastapi
     networks:
       - website_network
 

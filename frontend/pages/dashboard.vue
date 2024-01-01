@@ -49,6 +49,14 @@
                         </svg>
                         <span>{{ errorText }}</span>
                     </div>
+                    <div v-if="successful" role="alert" class="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Instance Deployed Username Is "kasm_user"</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,6 +114,7 @@ const deleteLoading = ref({});
 const errorText = ref("");
 const showError = ref(false);
 const pageLoading = ref(false);
+const successful = ref(false);
 
 
 function toTitleCase(str) {
@@ -132,14 +141,15 @@ function convertISOTimeToLocalDate(utcISOTimeString) {
     }
 }
 
-function showErrorNow(errorMsg) {
-    showError.value = true;
-    // console.log(errorMsg, "showErrorNow")
-    errorText.value = errorMsg;
+function toggleMessage(boolRef, messageRef, message) {
+    boolRef.value = true;
+    if (message) {
+        messageRef.value = message;
+    }
     setTimeout(
         function () {
-            showError.value = false;
-        }, 3000
+            boolRef.value = false;
+        }, 5000
     )
 }
 
@@ -158,13 +168,23 @@ async function sendRequest(url, method, store, data, bodyMsg) {
                 headers: req_header,
                 body: JSON.stringify(bodyMsg)
             });
+            const resp = await response.json()
             if (!response.ok) {
-                showErrorNow(resp.detail);
+                console.log(resp.detail);
+                toggleMessage(showError, errorText, resp.detail);
             }
             else {
-                const resp = await response.json()
                 // console.log(resp)
                 store.value = resp;
+                if (method == "POST") {
+                    // toggleMessage(successful, null, null)
+                    successful.value = true
+                    setTimeout(
+                        function () {
+                            successful.value = false;
+                        }, 10000
+                    )
+                }
             }
         }
         else {
@@ -176,7 +196,7 @@ async function sendRequest(url, method, store, data, bodyMsg) {
                 await navigateTo('/login')
             }
             else if (!response.ok) {
-                showErrorNow(response.detail);
+                toggleMessage(showError, errorText, response.detail);
             }
             else {
                 const data = await response.json();
