@@ -134,7 +134,7 @@ function convertISOTimeToLocalDate(utcISOTimeString) {
 
 function showErrorNow(errorMsg) {
     showError.value = true;
-    console.log(errorMsg, "showErrorNow")
+    // console.log(errorMsg, "showErrorNow")
     errorText.value = errorMsg;
     setTimeout(
         function () {
@@ -158,13 +158,13 @@ async function sendRequest(url, method, store, data, bodyMsg) {
                 headers: req_header,
                 body: JSON.stringify(bodyMsg)
             });
-            const resp = await response.json()
-            if (!resp.ok) {
-                console.log(resp.detail)
+            if (!response.ok) {
                 showErrorNow(resp.detail);
             }
             else {
-                store.value = query;
+                const resp = await response.json()
+                // console.log(resp)
+                store.value = resp;
             }
         }
         else {

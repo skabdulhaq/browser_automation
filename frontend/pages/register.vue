@@ -129,7 +129,7 @@ async function register() {
         if (!response.ok) {
             error_text.value = await result.detail;
             error.value = true;
-            console.log(error.value);
+            // console.log(error.value);
             setTimeout(
                 function () {
                     error.value = false;
