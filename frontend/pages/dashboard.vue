@@ -120,7 +120,7 @@ const successful = ref(false);
 function toTitleCase(str) {
     return str.replace(
         /\w\S*/g,
-        function (txt) {
+        (txt) => {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         }
     );
@@ -147,7 +147,7 @@ function toggleMessage(boolRef, messageRef, message) {
         messageRef.value = message;
     }
     setTimeout(
-        function () {
+        () => {
             boolRef.value = false;
         }, 5000
     )
@@ -176,11 +176,11 @@ async function sendRequest(url, method, store, data, bodyMsg) {
             else {
                 // console.log(resp)
                 store.value = resp;
-                if (method == "POST") {
+                if (method === "POST") {
                     // toggleMessage(successful, null, null)
                     successful.value = true
                     setTimeout(
-                        function () {
+                        () => {
                             successful.value = false;
                         }, 10000
                     )
@@ -192,7 +192,7 @@ async function sendRequest(url, method, store, data, bodyMsg) {
                 method: method,
                 headers: req_header,
             });
-            if (response.status == 401) {
+            if (response.status === 401) {
                 await navigateTo('/login')
             }
             else if (!response.ok) {
@@ -211,7 +211,7 @@ async function sendRequest(url, method, store, data, bodyMsg) {
 
 async function getUserContainers() {
     await sendRequest("http://cloudos.us.to/api/user/containers", "GET", userContainers, false, {});
-    for (var i = 0; i < userContainers.value.length; i++) {
+    for (let i = 0; i < userContainers.value.length; i++) {
         deleteLoading[userContainers.value[i].container_name] = false
     }
 }

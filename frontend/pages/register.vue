@@ -95,13 +95,12 @@ const formData = ref({
     password: "",
 });
 function verifyPassword() {
-    if (formData.value.password != "") {
+    if (formData.value.password !== "") {
         if (formData.value.password.length < 8) {
             short_password.value = true
             setTimeout(
-                async function () {
-                    short_password.value = false
-                }, 1000
+                async () =>{short_password.value = false}
+                , 1000
             )
         } else {
             short_password.value = false;
@@ -131,7 +130,7 @@ async function register() {
             error.value = true;
             // console.log(error.value);
             setTimeout(
-                function () {
+                () => {
                     error.value = false;
                     error_text.value = "";
                 }, 2000

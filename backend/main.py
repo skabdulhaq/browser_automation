@@ -1,21 +1,26 @@
+import os
+import re
+import math
+import random
+import base64
+import smtplib
+import paramiko
+import requests
+from uuid import uuid4
+from pydo import Client
 from typing import Union
+from jose import JWTError, jwt
 from dotenv import load_dotenv
-import os, paramiko, asyncio
+from pymongo import MongoClient
+from email.mime.text import MIMEText
+from datetime import timedelta, datetime
+from passlib.context import CryptContext
+from email.mime.multipart import MIMEMultipart
+from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestFormStrict
-from datetime import timedelta, datetime
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pymongo import MongoClient
-from models import *
-from pydo import Client
-from uuid import uuid4
-import math, random, base64,smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-import re, requests
+from models import Token, TokenData, Container, ContainerInDB, ContainerOut, User, UserInDB, UserCreate
+# from starlette.middleware import Middleware
 
 # origins = [
 #     "http://localhost:3000",
@@ -52,7 +57,11 @@ port_number = os.environ.get("EMAIL_PORT")
 website_url = os.environ.get("WEBSITE_URL") or "http://0.0.0.0:8000"
 web_api = os.environ.get("WEB_API")
 delete_interval = os.environ.get("DELETE_INTERVAL")
-
+credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 def get_diff_time(initial_time):
     now_utc = datetime.utcnow()
     specific_time = datetime.strptime(initial_time, '%Y-%m-%dT%H:%M:%SZ')
@@ -94,7 +103,7 @@ def is_valid_email(email:str):
             return f"{email} doesn't exists, check your email."
         return f'{result["result"]} email, check your email.'
     if result["is_disposable"]:
-        return f'Use non disposable mail'
+        return 'Use non disposable mail'
     return True
 
 def generateOTP(lenght: int = 6):
@@ -175,12 +184,12 @@ def remove_container_in_db(container_name: str):
     # print
     app.database["port"].delete_one({"port": int(container_name.split("-")[-1])})
     print("Deleted", container_name)
-    app.database["users"].update_one({"username": current_username}, {"$pull": {f"containers": {"container_name":container_name}}})
+    app.database["users"].update_one({"username": current_username}, {"$pull": {"containers": {"container_name":container_name}}})
     app.database["users"].update_one({"username": current_username}, {"$inc": {"active_containers": -1}})
     return app.database["users"].find_one({"username": current_username})
 def add_container_in_db(container: ContainerInDB, current_user: User):
     app.database["port"].insert_one({"port": container.port})
-    app.database["users"].update_one({"username": current_user.username}, {"$push": {f"containers": container.dict()}}, upsert=True)
+    app.database["users"].update_one({"username": current_user.username}, {"$push": {"containers": container.dict()}}, upsert=True)
     app.database["users"].update_one({"username": current_user.username}, {"$inc": {"active_containers": 1}})
     return app.database["users"].find_one({"username": current_user.username})
 
@@ -192,11 +201,7 @@ def get_usable_images(image):
         return False
 
 async def get_current_user(token: str = Depends(oauth_2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -286,7 +291,8 @@ async def add_container(container: Container, task_manager: BackgroundTasks, cur
     print(command)
     try:
         url_service = f"https://{execute_command(command)}:{port_value}"
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error when creating {container_name}",headers={"WWW-Authenticate": "Bearer"},)
     container_in_db = ContainerInDB(port=port_value, password=get_password_hash(container.password), container_image=container.container_image, container_name=container_name, service_url=url_service, down_time=datetime.utcnow()+timedelta(hours=1), status="Live")
     add_container_in_db(container_in_db, current_user)
@@ -374,7 +380,7 @@ async def register(user: UserCreate, verification_email: BackgroundTasks):
     if not is_password_valid(user.username):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Only alphabets and numbers are allowed in username.") 
     details = is_valid_email(user.email)
-    if details != True:
+    if not details :
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail=details)
     if len(user.password) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Password should be atleast 8 characters long.")

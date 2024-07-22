@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Union, Dict
+from typing import Union
 from datetime import datetime
  
 class Token(BaseModel):

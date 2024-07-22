@@ -76,7 +76,7 @@ const login = async () => {
             error.value = true;
             error_text.value = data.detail
         }
-        if (data.token_type == "bearer") {
+        if (data.token_type === "bearer") {
             const token = useCookie('token', { maxAge: 86400 })
             token.value = data.access_token;
             try {
@@ -92,9 +92,7 @@ const login = async () => {
                     error.value = result.detail
                     throw new Error('Network response was not ok');
                 }
-                else {
-                    await navigateTo('/dashboard')
-                }
+                await navigateTo('/dashboard')
                 if (route.query.to) {
                     await navigateTo(route.query.to);
                 }

@@ -18,18 +18,16 @@ try {
         failed.value = true;
         message.value = data.detail
         setTimeout(
-            async function () {
-                await navigateTo({ path: '/register' })
-            }, 3000
+            async () =>await navigateTo({ path: '/register' })
+            , 3000
         )
     }
     else {
         verificationCompleted.value = true;
         failed.value = false;
         setTimeout(
-            async function () {
-                await navigateTo({ path: '/login' })
-            }, 3000
+            async () => await navigateTo({ path: '/login' })
+            , 3000
         )
     }
 } catch (error) {
