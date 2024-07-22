@@ -170,7 +170,7 @@ async def startup_event():
         app.mongodb_client = MongoClient(DB_URL)
     except Exception as e:
         raise print(e)
-    app.database = app.mongodb_client["browser"]
+    app.database = app.mongodb_client["cloudos"]
 
 
 @app.on_event("shutdown")
