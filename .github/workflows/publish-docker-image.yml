@@ -30,7 +30,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
-          file: Dockerfile.web
           push: true
           tags:  ${{ secrets.DOCKERHUB_USERNAME }}/cloudos-frontend:${{ github.sha }} ,  ${{ secrets.DOCKERHUB_USERNAME }}/cloudos-frontend:latest
           
