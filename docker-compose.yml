@@ -44,9 +44,7 @@ services:
       - website_network
       
   web:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.web
+    image: t1tan/cloudos-frontend:latest
     depends_on:
       - fastapi
     networks:
