@@ -62,6 +62,12 @@ credentials_exception = HTTPException(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+# Config #
+
+email_verification = None
+
+#####
 def get_diff_time(initial_time):
     now_utc = datetime.utcnow()
     specific_time = datetime.strptime(initial_time, '%Y-%m-%dT%H:%M:%SZ')
@@ -119,11 +125,14 @@ def sendVerificationMail(to_mail:str, link:str):
     msg['To'] = to_mail
     msg['Subject'] = 'Email Verification.'
     msg.attach(MIMEText("Your verification link is: \n" + f'{website_url}{link}', 'plain'))
-    server = smtplib.SMTP(mail_server,port_number) 
-    server.starttls()
-    server.login(noreply_email, password_noreply_email)
-    server.send_message(msg)
-    server.close()
+    try:
+        server = smtplib.SMTP(mail_server,port_number) 
+        server.starttls()
+        server.login(noreply_email, password_noreply_email)
+        server.send_message(msg)
+        server.close()
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"Authentication Error : {e}")
 
 
 def verify_password(plain_password, hashed_password):
@@ -166,11 +175,17 @@ def create_token(data: dict, expires_delta: Union[timedelta, None] = None):
     
 @app.on_event("startup")
 async def startup_event():
+    global email_verification
     try:
         app.mongodb_client = MongoClient(DB_URL)
     except Exception as e:
         raise print(e)
     app.database = app.mongodb_client["cloudos"]
+    config = app.database["config"].find({"type": "config"})
+    for conf in list(config):
+        if conf["email_verification"]:
+            email_verification = conf["email_verification"]
+
 
 
 @app.on_event("shutdown")
@@ -385,8 +400,12 @@ async def register(user: UserCreate, verification_email: BackgroundTasks):
     if len(user.password) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Password should be atleast 8 characters long.")
     otp = generateOTP()
-    db_user = UserInDB(**user.dict(), hashed_password=get_password_hash(user.password), otp=str(otp))
-    app.database["users"].insert_one(db_user.dict())
-    link = f"/verify/{base64.b64encode(otp.encode()).decode()}/{base64.b64encode(db_user.email.encode()).decode()}"
-    verification_email.add_task(sendVerificationMail, db_user.email, link)
+    if email_verification:
+        db_user = UserInDB(**user.dict(), hashed_password=get_password_hash(user.password), otp=str(otp))
+        link = f"/verify/{base64.b64encode(otp.encode()).decode()}/{base64.b64encode(db_user.email.encode()).decode()}"
+        verification_email.add_task(sendVerificationMail, db_user.email, link)
+        app.database["users"].insert_one(db_user.dict())
+    else:
+        db_user = UserInDB(**user.dict(), hashed_password=get_password_hash(user.password), otp=str(otp), disabled=False)
+        app.database["users"].insert_one(db_user.dict())
     return db_user
