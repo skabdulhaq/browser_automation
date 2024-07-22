@@ -210,7 +210,7 @@ async function sendRequest(url, method, store, data, bodyMsg) {
 }
 
 async function getUserContainers() {
-    await sendRequest(`${process.env.API_URI}/user/containers`, "GET", userContainers, false, {});
+    await sendRequest("/api/user/containers", "GET", userContainers, false, {});
     for (let i = 0; i < userContainers.value.length; i++) {
         deleteLoading[userContainers.value[i].container_name] = false
     }
@@ -218,7 +218,7 @@ async function getUserContainers() {
 
 async function deploy() {
     loading.value = true;
-    await sendRequest(`${process.env.API_URI}/user/container`, "POST", containerData, true, {
+    await sendRequest("/api/user/container", "POST", containerData, true, {
         container_image: selectedImage.value,
         password: password.value,
     });
@@ -232,7 +232,7 @@ async function deploy() {
 async function delete_container(containerName) {
     deleteLoading.value[containerName] = true
     // console.log(containerName, "DELETING")
-    await sendRequest(`${process.env.API_URI}/user/container?container_name=${containerName}`, "DELETE", deletedUserContainers, false, {});
+    await sendRequest(`/api/user/container?container_name=${containerName}`, "DELETE", deletedUserContainers, false, {});
     await getUserContainers();
     deleteLoading.value[containerName] = false
 }
@@ -240,9 +240,9 @@ pageLoading.value = true;
 if (userContainers.value.length > 0) {
     noContainers.value = false;
 }
-await sendRequest(`${process.env.API_URI}/user`, "GET", userData, false, {});
+await sendRequest("/api/user", "GET", userData, false, {});
 await getUserContainers();
-await sendRequest(`${process.env.API_URI}/list/images`, "GET", avaliableImages, false, {});
+await sendRequest("/api/list/images", "GET", avaliableImages, false, {});
 pageLoading.value = false;
 definePageMeta({
     middleware: 'auth'

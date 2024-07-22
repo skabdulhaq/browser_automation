@@ -116,7 +116,7 @@ async function register() {
     // console.log(formData.value);
     const validPassword = verifyPassword();
     if (validPassword) {
-        const response = await fetch(`${process.env.API_URI}/register`, {
+        const response = await fetch("/api/register", {
             method: 'POST',
             headers: {
                 'accept': 'application/json',
