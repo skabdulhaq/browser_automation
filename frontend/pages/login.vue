@@ -58,7 +58,7 @@ const loginData = ref({
 const loading = ref(false);
 const login = async () => {
     loading.value = true
-    const url = "http://cloudos.us.to/api/token"
+    const url = `${process.env.API_URI}/token`
     const data = {
         grant_type: "password",
         username: loginData.value.identifier,
@@ -80,7 +80,7 @@ const login = async () => {
             const token = useCookie('token', { maxAge: 86400 })
             token.value = data.access_token;
             try {
-                const response = await fetch("http://cloudos.us.to/api/user", {
+                const response = await fetch(`${process.env.API_URI}/user`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',

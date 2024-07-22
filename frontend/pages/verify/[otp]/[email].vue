@@ -10,7 +10,7 @@ const verificationCompleted = ref(false);
 const failed = ref(false);
 const path = route.path;
 const message = ref('');
-const api = "http://cloudos.us.to/api";
+const api = `${process.env.API_URI}`;
 try {
     const response = await fetch(api + path, { method: 'GET', headers: { accept: 'application/json' } });
     const data = await response.json();

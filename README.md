@@ -1,8 +1,8 @@
 # Cloud OS (Browser In The Cloud)
 ## Website Link - Presently down coz by digital ocean credits expired :(
-[Cloud OS](http://cloudos.us.to/)
+[Cloud OS](https://cloudos.abdulhaq.me/api)
 ## Project Documentation
-[Cloud OS API Docs](http://cloudos.us.to/api/docs)
+[Cloud OS API Docs](https://cloudos.abdulhaq.me/api/docs)
 ### Project Overview
 
 This is an open-source project built with FastAPI, which provides a REST API for managing containers on a cloud infrastructure. The project allows users to create, manage, and delete containers on a cloud server. Users can create containers with custom images and passwords, and the project will handle the provisioning and management of the cloud server.
@@ -38,7 +38,6 @@ Before running the application, make sure to create a `.env` file in the project
 ```
 SECRET_KEY=your_secret_key
 DB_CRED=your_db_credentials
-DIGITALOCEAN_AUTH=your_digital_ocean_token
 DB_URL=your_mongodb_connection_string
 EMAIL_HOST_USER=your_email_address
 EMAIL_HOST_PASSWORD=your_email_password
