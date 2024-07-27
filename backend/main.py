@@ -66,6 +66,7 @@ credentials_exception = HTTPException(
 # Config #
 
 email_verification = None
+deployment_server_ready = None
 
 #####
 def get_diff_time(initial_time):
@@ -172,19 +173,28 @@ def create_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-    
+
+def initialize_config():
+    app.database["config"].insert_one({"type": "config", "email_verification": False, "deployment_server_ready": False})
+    return 
+ 
 @app.on_event("startup")
 async def startup_event():
-    global email_verification
+    global email_verification, deployment_server_ready
     try:
         app.mongodb_client = MongoClient(DB_URL)
     except Exception as e:
         raise print(e)
     app.database = app.mongodb_client["cloudos"]
     config = app.database["config"].find({"type": "config"})
-    for conf in list(config):
+    conf = list(config)
+    if config.count() == 0:
+        initialize_config()
+    else:
         if conf["email_verification"]:
             email_verification = conf["email_verification"]
+        if conf["deployment_server_ready"]:
+            deployment_server_ready = conf["deployment_server_ready"]
 
 
 
