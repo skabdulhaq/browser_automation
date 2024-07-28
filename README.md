@@ -1,6 +1,6 @@
 # Cloud OS (Browser In The Cloud)
 ## Website Link
-[Cloud OS](https://cloudos.abdulhaq.me/api)
+[Cloud OS](https://cloudos.abdulhaq.me/)
 ## Project Documentation
 [Cloud OS API Docs](https://cloudos.abdulhaq.me/api/docs)
 ### Project Overview
