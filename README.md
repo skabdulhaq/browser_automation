@@ -1,5 +1,5 @@
 # Cloud OS (Browser In The Cloud)
-## Website Link - Presently down coz by digital ocean credits expired :(
+## Website Link
 [Cloud OS](https://cloudos.abdulhaq.me/api)
 ## Project Documentation
 [Cloud OS API Docs](https://cloudos.abdulhaq.me/api/docs)
